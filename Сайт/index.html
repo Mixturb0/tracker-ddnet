@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Luminy - Трекер DDNet</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      color: #ddd;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0b0018 0%, #180033 50%, #0b0018 100%);
+      background-attachment: fixed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .top-nav {
+      width: 100%;
+      background: rgba(15,5,35,0.7);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(140,80,240,0.3);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+    }
+    .nav-link {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #d0b0ff;
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 12px;
+      transition: 0.2s;
+    }
+    .nav-link:hover { background: rgba(120,50,220,0.35); color: white; }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 5.2rem;
+      font-weight: 900;
+      letter-spacing: -3px;
+      background: linear-gradient(90deg, #b084ff, #a070ff, #8040ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+    .subtitle { font-size: 1.4rem; opacity: 0.7; margin-bottom: 60px; }
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+    }
+    .search-input {
+      width: 100%;
+      height: 68px;
+      padding: 0 80px 0 28px;
+      font-size: 1.25rem;
+      background: rgba(25,15,50,0.75);
+      border: 1px solid #55339955;
+      border-radius: 999px;
+      color: #eee;
+      outline: none;
+      transition: 0.25s;
+    }
+    .search-input:focus {
+      border-color: #9966ff;
+      background: rgba(35,25,60,0.9);
+      box-shadow: 0 0 0 3px #9966ff22;
+    }
+    .search-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 52px;
+      height: 52px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .search-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-50%) scale(1.06);
+    }
+    .arrow {
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 14px solid black;
+      margin-left: 3px;
+    }
+    ::placeholder { color: rgba(220,220,255,0.5); }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="nav-container">
+      <a href="#" class="nav-link">Сервера</a>
+      <a href="#" class="nav-link">Топ-ладдер</a>
+      <a href="#" class="nav-link">Карты</a>
+      <a href="#" class="nav-link">Активные игроки</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>Luminy</h1>
+    <div class="subtitle">Трекер статистики DDNet</div>
+
+    <div class="search-wrapper">
+      <input 
+        type="text" 
+        id="nickname" 
+        class="search-input" 
+        placeholder="Введите никнейм"
+        autocomplete="off"
+      />
+      <button class="search-btn" id="searchBtn">
+        <div class="arrow"></div>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    const input = document.getElementById('nickname');
+    const btn = document.getElementById('searchBtn');
+
+    function goToPlayer() {
+      const nick = input.value.trim();
+      if (nick) {
+        // Переход на страницу статистики с ником в URL
+        window.location.href = `player.html?nick=${encodeURIComponent(nick)}`;
+      }
+    }
+
+    btn.addEventListener('click', goToPlayer);
+    input.addEventListener('keypress', e => {
+      if (e.key === 'Enter') goToPlayer();
+    });
+  </script>
+
+</body>
+</html>
