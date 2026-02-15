@@ -1,18 +1,19 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"trackerDDnet/internal/tracker"
 )
 
+var stats tracker.PlayerStats
+
 func Player(nickname string) string {
-	baseUrl := "https://ru.ddnet.org/players/?json2="
-	fullUrl, err := url.JoinPath(baseUrl, nickname)
-	if err != nil {
-		return err.Error()
-	}
+	fullUrl := fmt.Sprintf("https://ru.ddnet.org/players?json2=%s", url.QueryEscape(nickname))
+
 	info, err := http.Get(fullUrl)
 	if err != nil {
 		fmt.Println("Ошибка при получения JSON:", err)
@@ -27,8 +28,12 @@ func Player(nickname string) string {
 		return err.Error()
 	}
 
-	bodyString := string(body)
+	err = json.Unmarshal(body, &stats)
+	if err != nil {
+		fmt.Println("Ошибка при декодировании JSON:", err)
+		return err.Error()
+	}
 
-	return bodyString
+	return stats.Player
 
 }

@@ -1,31 +1,110 @@
 package tracker
 
-type Player struct {
-	Nickname       string             `json:"player"`
-	Points         PointsInfo         `json:"points"`
-	FavoriteServer FavoriteServerInfo `json:"favorite_server"`
+import "time"
+
+type PlayerStats struct {
+	Player                 string              `json:"player"`
+	Points                 Points              `json:"points"`
+	TeamRank               Rank                `json:"team_rank"`
+	Rank                   Rank                `json:"rank"`
+	PointsLastYear         Points              `json:"points_last_year"`
+	PointsLastMonth        Points              `json:"points_last_month"`
+	PointsLastWeek         Points              `json:"points_last_week"`
+	FavoriteServer         FavoriteServer      `json:"favorite_server"`
+	FirstFinish            FirstFinish         `json:"first_finish"`
+	LastFinishes           []Finish            `json:"last_finishes"`
+	FavoritePartners       []Partner           `json:"favorite_partners"`
+	Types                  map[string]GameType `json:"types"`
+	Activity               []Activity          `json:"activity"`
+	HoursPlayedPast365Days int                 `json:"hours_played_past_365_days"`
+}
+
+type PlayerGive struct {
+	Player *string
+	Points *int
+	Rank *int
+	Finish int
+}
+
+type Points struct {
+	Rank   *int `json:"rank"`
+	Points int  `json:"points"`
+	Total  int  `json:"total,omitempty"`
+}
+
+type Rank struct {
+	Rank *int `json:"rank"`
+}
+
+type FavoriteServer struct {
+	Server string `json:"server"`
+}
+
+type FirstFinish struct {
+	Timestamp float64 `json:"timestamp"`
+	Map       string  `json:"map"`
+	Time      float64 `json:"time"`
+}
+
+type Finish struct {
+	Timestamp float64 `json:"timestamp"`
+	Map       string  `json:"map"`
+	Time      float64 `json:"time"`
+	Country   string  `json:"country"`
+	Type      string  `json:"type"`
+}
+
+type Partner struct {
+	Name     string `json:"name"`
+	Finishes int    `json:"finishes"`
+}
+
+type GameType struct {
+	Points   Points             `json:"points"`
+	TeamRank Rank               `json:"team_rank"`
+	Rank     Rank               `json:"rank"`
+	Maps     map[string]MapInfo `json:"maps"`
 }
 
 type MapInfo struct {
 	Points        int     `json:"points"`
 	TotalFinishes int     `json:"total_finishes"`
 	Finishes      int     `json:"finishes"`
-	Rank          int     `json:"rank"`
-	Time          float64 `json:"time"`
-	FirstFinish   int64   `json:"first_finish"`
+	Rank          *int    `json:"rank,omitempty"`
+	Time          float64 `json:"time,omitempty"`
+	FirstFinish   float64 `json:"first_finish,omitempty"`
 }
 
-type Category struct {
-	Points int                `json:"points"`
-	Maps   map[string]MapInfo `json:"maps"`
+type Activity struct {
+	Date        string `json:"date"`
+	HoursPlayed int    `json:"hours_played"`
 }
 
-type PointsInfo struct {
-	Rank        int `json:"rank"`
-	Points      int `json:"points"`
-	TotalPoints int `json:"total"`
+func (f *FirstFinish) GetTimestamp() time.Time {
+	return time.Unix(int64(f.Timestamp), 0)
 }
 
-type FavoriteServerInfo struct {
-	FavoriteServer string `json:"server"`
+func (f *Finish) GetTimestamp() time.Time {
+	return time.Unix(int64(f.Timestamp), 0)
+}
+
+func (m *MapInfo) GetFirstFinishTime() *time.Time {
+	if m.FirstFinish == 0 {
+		return nil
+	}
+	t := time.Unix(int64(m.FirstFinish), 0)
+	return &t
+}
+
+func (a *Activity) GetDate() (time.Time, error) {
+	return time.Parse("2006-02-01", a.Date)
+}
+
+func (m *MapInfo)TotalHourse() int {
+	var TotalFinish int = 0
+	for _ , v range m.finishes{
+		if v != 0 {
+			TotalFinish += v
+		}
+	}
 }
