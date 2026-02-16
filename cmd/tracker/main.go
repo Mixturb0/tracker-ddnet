@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"trackerDDnet/internal/api"
+	"trackerDDnet/internal/tracker"
 )
 
 func PlayerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	nickname := r.URL.Query().Get("name")
-	JsonResponse := api.Player(nickname)
-	fmt.Fprint(w, JsonResponse)
+	JsonResponse := tracker.PlayerPars(nickname)
+	if _, err := fmt.Fprint(w, JsonResponse); err != nil {
+		fmt.Println("error writing response", err.Error())
+	}
 
 }
 

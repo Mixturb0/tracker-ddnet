@@ -20,9 +20,9 @@ type PlayerStats struct {
 }
 
 type PlayerGive struct {
-	Player *string
-	Points *int
-	Rank *int
+	Player string
+	Points Points
+	Rank   Rank
 	Finish int
 }
 
@@ -100,11 +100,20 @@ func (a *Activity) GetDate() (time.Time, error) {
 	return time.Parse("2006-02-01", a.Date)
 }
 
-func (m *MapInfo)TotalHourse() int {
-	var TotalFinish int = 0
-	for _ , v range m.finishes{
-		if v != 0 {
-			TotalFinish += v
+func (p *PlayerStats) TotalHourse() int {
+	TotalHours := 0
+	for _, v := range p.Activity {
+		TotalHours += v.HoursPlayed
+	}
+	return TotalHours
+}
+
+func (p *PlayerStats) TotalFinishes() int {
+	TotalFinish := 0
+	for _, v := range p.Types {
+		for _, v2 := range v.Maps {
+			TotalFinish += v2.Finishes
 		}
 	}
+	return TotalFinish
 }
