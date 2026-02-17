@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"trackerDDnet/internal/tracker"
@@ -9,11 +10,23 @@ import (
 func PlayerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	nickname := r.URL.Query().Get("name")
-	JsonResponse := tracker.PlayerPars(nickname)
-	if _, err := fmt.Fprint(w, JsonResponse); err != nil {
-		fmt.Println("error writing response", err.Error())
+	if nickname == "" {
+		http.Error(w, "name required", http.StatusBadRequest)
+		return
 	}
 
+	stats, err := tracker.PlayerPars(nickname)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	response := stats.ToPlayerGive()
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func main() {

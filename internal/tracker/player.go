@@ -8,13 +8,13 @@ import (
 	"net/url"
 )
 
-func PlayerPars(nickname string) error {
+func PlayerPars(nickname string) (*PlayerStats, error) {
 	fullUrl := fmt.Sprintf("https://ru.ddnet.org/players?json2=%s", url.QueryEscape(nickname))
 
 	info, err := http.Get(fullUrl)
 	if err != nil {
 		fmt.Println("Ошибка при получения JSON:", err)
-		return err
+		return nil, err
 	}
 
 	defer info.Body.Close()
@@ -22,17 +22,19 @@ func PlayerPars(nickname string) error {
 	body, err := io.ReadAll(info.Body)
 	if err != nil {
 		fmt.Println("Ошибка при получения body:", err)
-		return err
+		return nil, err
 	}
 
-	err = json.Unmarshal(body, PlayerGive{})
+	var stats PlayerStats
+	err = json.Unmarshal(body, &stats)
 	if err != nil {
 		fmt.Println("Ошибка при декодировании JSON:", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return &stats, err
 }
-func (p *PlayerStats) PlayerGet() PlayerGive {
+
+func (p *PlayerStats) ToPlayerGive() PlayerGive {
 	return PlayerGive{
 		Player: p.Player,
 		Points: p.Points,
