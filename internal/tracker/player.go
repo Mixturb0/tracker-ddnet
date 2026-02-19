@@ -36,9 +36,9 @@ func PlayerPars(nickname string) (*PlayerStats, error) {
 
 func (p *PlayerStats) ToPlayerGive() PlayerGive {
 	return PlayerGive{
-		Player: p.Player,
-		Points: p.Points,
-		Rank:   p.Rank,
-		Finish: p.TotalFinishes(),
+		Player:     p.Player,
+		Points:     p.Points,
+		Finish:     p.TotalFinishes(),
+		TotalHours: p.TotalHourse(),
 	}
 }

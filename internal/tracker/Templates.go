@@ -20,10 +20,16 @@ type PlayerStats struct {
 }
 
 type PlayerGive struct {
-	Player string
-	Points Points
-	Rank   Rank
-	Finish int
+	Player     string `json:"player"`
+	Points     Points `json:"points"`
+	Finish     int    `json:"finishes"`
+	TotalHours int    `json:"hours"`
+}
+
+type LadderPlayer struct {
+	Rank   int    `json:"rank"`
+	Name   string `json:"name"`
+	Points int    `json:"points"`
 }
 
 type Points struct {
