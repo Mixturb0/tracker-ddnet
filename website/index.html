@@ -64,7 +64,7 @@
             right: -10%;
             width: 600px;
             height: 600px;
-            background: #ff007f; /* Deep Pink */
+            background: #ff007f;
             animation-delay: -5s;
         }
 
@@ -210,7 +210,7 @@
             padding: 2rem;
             width: 100%;
             max-width: 800px;
-            display: none; /* Скрыто по умолчанию */
+            display: none;
             box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
 
@@ -284,14 +284,62 @@
             width: 100%;
         }
 
-        .server-list-item, .ladder-item {
+        .ladder-item {
             display: flex;
             justify-content: space-between;
             padding: 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .server-list-item:last-child { border-bottom: none; }
+        .ladder-item:last-child { border-bottom: none; }
 
+        /* --- Сервера (Аккордеоны) --- */
+        .region-title {
+            width: 100%;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(189, 52, 254, 0.4);
+            color: #fff;
+            text-align: left;
+        }
+        .server-accordion {
+            width: 100%;
+            margin-bottom: 0.8rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .server-header {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .server-header:hover { background: rgba(255, 255, 255, 0.1); }
+        .player-count {
+            background: rgba(189, 52, 254, 0.8);
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .server-body {
+            display: none;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--glass-border);
+        }
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.05);
+        }
+        .player-row:last-child { border-bottom: none; }
+        .player-time { color: #4ade80; font-family: monospace; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -352,44 +400,35 @@
     <section id="ladder" class="page-section">
         <h2 style="margin-bottom: 2rem; font-size: 2.5rem;">Топ Игроков</h2>
         <div class="placeholder-content">
-            <div class="ladder-item"><span>1. Kero</span><span>25,000 pts</span></div>
-            <div class="ladder-item"><span>2. ChillerDragon</span><span>24,800 pts</span></div>
-            <div class="ladder-item"><span>3. Teeworlds_God</span><span>24,500 pts</span></div>
-            <div class="ladder-item" style="color: #888; justify-content: center; margin-top: 1rem;">... загрузка данных с бэкенда ...</div>
+            <div style="color: #888; text-align: center;">... загрузка данных с бэкенда ...</div>
         </div>
     </section>
 
     <section id="servers" class="page-section">
-        <h2 style="margin-bottom: 2rem; font-size: 2.5rem;">Статус Серверов</h2>
-        <div class="stats-grid" style="width: 100%;">
-            <div class="stat-box">
-                <div class="stat-value" style="color: #4ade80">Online</div>
-                <div class="stat-label">RU-Main</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" style="color: #4ade80">Online</div>
-                <div class="stat-label">GER-Pro</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" style="color: #f87171">Maint</div>
-                <div class="stat-label">USA-Novice</div>
-            </div>
+        <h2 style="margin-bottom: 1rem; font-size: 2.5rem;">Онлайн Сервера</h2>
+        <div id="servers-container" style="width: 100%; max-width: 800px;">
+            <div style="color: #888; text-align: center;">Загрузка данных серверов...</div>
         </div>
     </section>
 </main>
 
 <script>
-    // Функция переключения вкладок (оставляем без изменений)
+    // 1. Управление вкладками
     function showTab(tabId, element) {
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
         document.querySelectorAll('.nav-pill').forEach(btn => btn.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         element.classList.add('active');
+
+        if (tabId === 'ladder') {
+            loadLadder();
+        } else if (tabId === 'servers') {
+            loadServers();
+        }
     }
 
-    // Обработка поиска с запросом к Go-бэкенду
+    // 2. Поиск игрока
     async function handleSearch(event) {
-        // Срабатываем только на Enter
         if (event.key !== 'Enter') return;
 
         const input = document.getElementById('playerSearch');
@@ -397,35 +436,28 @@
 
         if(query === "") return;
 
-        // Показываем индикацию загрузки (опционально можно добавить спиннер)
         input.style.opacity = "0.5";
 
         try {
-            // 1. Делаем запрос к твоему Go серверу
-            // Обрати внимание на порт 9091 и параметр ?name=
             const response = await fetch(`http://localhost:9091/player?name=${query}`);
+            if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`);
 
-            // 2. Проверяем, нашел ли сервер игрока
-            if (!response.ok) {
-                throw new Error(`Ошибка: ${response.statusText}`);
-            }
-
-            // 3. Получаем JSON от Go
             const data = await response.json();
 
-            // 4. Заполняем UI данными из Go
-            // Важно: поля data.points и т.д. должны совпадать с JSON-тегами в твоем Go коде!
-            document.getElementById('displayName').innerText = query;
-            document.getElementById('avatarLetter').innerText = query.charAt(0).toUpperCase();
+            // Имя
+            const playerName = data.player || query;
+            document.getElementById('displayName').innerText = playerName;
+            document.getElementById('avatarLetter').innerText = playerName.charAt(0).toUpperCase();
 
-            // Предполагаем, что твой Go возвращает JSON с полями: hours, points, rank, finishes
-            // Если в Go поля называются с большой буквы (Points), а тегов json нет, пиши data.Points
-            document.getElementById('statHours').innerText = (data.hours || 0) + ' ч';
-            document.getElementById('statPoints').innerText = data.points.points || 0;
-            document.getElementById('statRank').innerText = "#" + (data.points.rank || 0);
+            // Статистика (с правильными путями из твоего бэкенда)
+            document.getElementById('statHours').innerText = (data.total_hours || 0) + ' ч';
+            document.getElementById('statPoints').innerText = data.points?.points || 0;
+
+            const playerRank = data.points?.rank || data.rank?.rank;
+            document.getElementById('statRank').innerText = playerRank ? `#${playerRank}` : "Нет";
+
             document.getElementById('statFinishes').innerText = data.finishes || 0;
 
-            // Показываем карточку
             const statsCard = document.getElementById('playerStats');
             statsCard.style.display = 'block';
             statsCard.style.animation = 'fadeIn 0.6s ease';
@@ -435,43 +467,31 @@
             alert("Игрок не найден или ошибка сервера!");
             document.getElementById('playerStats').style.display = 'none';
         } finally {
-            // Возвращаем прозрачность ввода обратно
             input.style.opacity = "1";
         }
     }
-    // Обновленная функция переключения вкладок
-    function showTab(tabId, element) {
-        document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-        document.querySelectorAll('.nav-pill').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        element.classList.add('active');
 
-        // Если открыли вкладку ладдера, идем запрашивать данные
-        if (tabId === 'ladder') {
-            loadLadder();
-        }
-    }
-
-    // Новая функция для загрузки Топ-ладдера
+    // 3. Загрузка ладдера
     async function loadLadder() {
         const ladderContainer = document.querySelector('#ladder .placeholder-content');
         ladderContainer.innerHTML = '<div style="color: #888; text-align: center;">Загрузка данных с сервера Luminy...</div>';
 
         try {
-            // Запрашиваем наш новый эндпоинт на Go
             const response = await fetch('http://localhost:9091/ladder');
             if (!response.ok) throw new Error("Ошибка сервера");
 
             const players = await response.json();
 
-            // Очищаем контейнер
             ladderContainer.innerHTML = '';
 
-            // Генерируем HTML для каждого игрока
+            if (!players || players.length === 0) {
+                ladderContainer.innerHTML = '<div style="color: #888; text-align: center;">Ладдер пуст или не загрузился</div>';
+                return;
+            }
+
             players.forEach(player => {
                 const item = document.createElement('div');
                 item.className = 'ladder-item';
-                // Форматируем вывод: "1. Nickname" и "15,000 pts"
                 item.innerHTML = `
                     <span style="font-weight: bold; color: #fff;">${player.rank}. ${player.name}</span>
                     <span style="color: #d8b4fe;">${player.points.toLocaleString()} pts</span>
@@ -482,6 +502,74 @@
         } catch (error) {
             console.error("Ошибка:", error);
             ladderContainer.innerHTML = '<div style="color: #f87171; text-align: center;">Не удалось загрузить ладдер</div>';
+        }
+    }
+
+    // 4. Функции для серверов (открытие аккордеона)
+    function toggleServer(element) {
+        const body = element.nextElementSibling;
+        body.style.display = body.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // 5. Загрузка серверов
+    async function loadServers() {
+        const container = document.getElementById('servers-container');
+        container.innerHTML = '<div style="color: #888; text-align: center;">Подключение к серверам Luminy...</div>';
+
+        try {
+            const response = await fetch('http://localhost:9091/servers');
+            if (!response.ok) throw new Error("Ошибка сервера");
+            const servers = await response.json();
+
+            container.innerHTML = '';
+
+            if (!servers || servers.length === 0) {
+                container.innerHTML = '<div style="color: #888; text-align: center;">Нет данных о серверах</div>';
+                return;
+            }
+
+            // Разделяем серверы на EUR и RUS и сразу сортируем по количеству игроков (по убыванию)
+            const eurServers = servers
+                .filter(s => s.region === 'EUR')
+                .sort((a, b) => b.players.length - a.players.length);
+
+            const rusServers = servers
+                .filter(s => s.region === 'RUS')
+                .sort((a, b) => b.players.length - a.players.length);
+
+            const renderRegion = (title, serverList) => {
+                if (serverList.length === 0) return '';
+                let html = `<h3 class="region-title">${title} (${serverList.length} активных)</h3>`;
+
+                serverList.forEach(srv => {
+                    let playersHtml = srv.players.map(p => `
+                        <div class="player-row">
+                            <span class="player-time">${p.time}</span>
+                            <span>${p.name}</span>
+                        </div>
+                    `).join('');
+
+                    html += `
+                        <div class="server-accordion">
+                            <div class="server-header" onclick="toggleServer(this)">
+                                <span>${srv.title}</span>
+                                <span class="player-count">Игроков: ${srv.players.length}</span>
+                            </div>
+                            <div class="server-body">
+                                ${playersHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+                return html;
+            };
+
+            container.innerHTML += renderRegion('🇪🇺 Европейские Сервера (0-133)', eurServers);
+            container.innerHTML += renderRegion('🇷🇺 Русские Сервера (134-290)', rusServers);
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = '<div style="color: #f87171; text-align: center;">Не удалось загрузить сервера.</div>';
         }
     }
 </script>

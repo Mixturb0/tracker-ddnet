@@ -32,6 +32,19 @@ type LadderPlayer struct {
 	Points int    `json:"points"`
 }
 
+type PlayerInfo struct {
+	Time string `json:"time"`
+	Name string `json:"name"`
+}
+
+// Структура самого сервера
+type ServerInfo struct {
+	ID      int          `json:"id"`
+	Region  string       `json:"region"` // "EUR" или "RUS"
+	Title   string       `json:"title"`
+	Players []PlayerInfo `json:"players"`
+}
+
 type Points struct {
 	Rank   *int `json:"rank"`
 	Points int  `json:"points"`
